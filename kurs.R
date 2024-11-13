@@ -1,3 +1,6 @@
+library(PxWebApiData)
+library(RJDemetra)
+library(tidyverse)
 library(pickmdl)
 # Henter data fra statistikkbanken
 
