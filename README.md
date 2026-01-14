@@ -1,5 +1,5 @@
 # My-project
-This is my projects for EDX - python for data science 
+This is my project for EDX - python for data science 
 
 ## Tools
 

@@ -6,7 +6,19 @@ Script to find commits in a Git repository with many deletions.
 import subprocess
 import sys
 import argparse
+from enum import Enum
 from typing import List, Dict, Tuple
+
+
+class ParseState(Enum):
+    """State machine for parsing git log output."""
+    HASH = 'hash'
+    SHORT_HASH = 'short_hash'
+    AUTHOR = 'author'
+    EMAIL = 'email'
+    DATE = 'date'
+    SUBJECT = 'subject'
+    STATS = 'stats'
 
 
 def get_commit_stats(repo_path: str = ".") -> List[Dict[str, any]]:
@@ -31,6 +43,7 @@ def get_commit_stats(repo_path: str = ".") -> List[Dict[str, any]]:
         
         commits = []
         current_commit = None
+        state = None
         
         for line in output.split('\n'):
             if line == "COMMIT_START":
@@ -47,27 +60,27 @@ def get_commit_stats(repo_path: str = ".") -> List[Dict[str, any]]:
                     'deletions': 0,
                     'files_changed': 0
                 }
-                state = 'hash'
+                state = ParseState.HASH
             elif current_commit:
-                if state == 'hash':
+                if state == ParseState.HASH:
                     current_commit['hash'] = line
-                    state = 'short_hash'
-                elif state == 'short_hash':
+                    state = ParseState.SHORT_HASH
+                elif state == ParseState.SHORT_HASH:
                     current_commit['short_hash'] = line
-                    state = 'author'
-                elif state == 'author':
+                    state = ParseState.AUTHOR
+                elif state == ParseState.AUTHOR:
                     current_commit['author'] = line
-                    state = 'email'
-                elif state == 'email':
+                    state = ParseState.EMAIL
+                elif state == ParseState.EMAIL:
                     current_commit['email'] = line
-                    state = 'date'
-                elif state == 'date':
+                    state = ParseState.DATE
+                elif state == ParseState.DATE:
                     current_commit['date'] = line
-                    state = 'subject'
-                elif state == 'subject':
+                    state = ParseState.SUBJECT
+                elif state == ParseState.SUBJECT:
                     current_commit['subject'] = line
-                    state = 'stats'
-                elif state == 'stats':
+                    state = ParseState.STATS
+                elif state == ParseState.STATS:
                     # Parse numstat output: insertions, deletions, filename
                     parts = line.split('\t')
                     if len(parts) == 3:
